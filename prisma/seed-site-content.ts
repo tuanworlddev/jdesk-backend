@@ -102,8 +102,8 @@ public CompletionStage<Response> greet(Request req, InvocationContext ctx) {
       tsCode: `import { commands } from "./jdesk-ts/commands";
 
 // Fully typed — the argument and result come from your Java records.
-const res = await commands.greeting.greet({ name: "Tuan" });
-result.textContent = res.message; // "Hello, Tuan!"`,
+const res = await commands.greeting.greet({ name: "Ada" });
+result.textContent = res.message; // "Hello, Ada!"`,
     },
     comparison: {
       eyebrow: "How it compares",

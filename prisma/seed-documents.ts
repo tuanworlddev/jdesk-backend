@@ -176,7 +176,7 @@ Handlers run on a **virtual thread**, off the UI thread — just block for I/O. 
 
 \`\`\`ts
 import { commands } from "./jdesk-ts/commands";
-const response = await commands.greeting.greet({ name: "Tuan" });
+const response = await commands.greeting.greet({ name: "Ada" });
 \`\`\`
 `,
   ),
