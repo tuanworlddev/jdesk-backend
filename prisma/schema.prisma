@@ -1,0 +1,59 @@
+// JDesk website CMS + feedback — SQLite via Prisma.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Admin accounts. Seeded from ADMIN_* env vars.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+/// A documentation page, editable by the admin as Markdown.
+model Document {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+  eyebrow     String   @default("Docs")
+  group       String   @default("Guides")
+  order       Int      @default(0)
+  content     String   @default("") // Markdown body
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([group, order])
+}
+
+/// Structured interface content (homepage, nav, footer, general).
+/// One row per section; `value` is a JSON blob the frontend consumes.
+model SiteContent {
+  key       String   @id // "home" | "nav" | "footer" | "general"
+  value     String // JSON
+  updatedAt DateTime @updatedAt
+}
+
+/// Feedback submitted from the public modal (email, full name, content).
+model Feedback {
+  id        String   @id @default(cuid())
+  email     String
+  fullName  String
+  content   String
+  status    String   @default("new") // new | read | resolved
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
+}
