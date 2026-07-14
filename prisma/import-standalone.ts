@@ -35,6 +35,8 @@ const STANDALONE: {
   { slug: "capabilities-json", title: "Capabilities JSON", description: "Reference for the versioned, deny-by-default per-window capability policy.", group: "Reference", order: 3 },
   { slug: "error-codes", title: "Error codes", description: "Stable public error codes returned by the runtime, bridge, asset server, and tooling.", group: "Reference", order: 4 },
   { slug: "typescript-client", title: "TypeScript client", description: "Reference for invoke, events, cancellation, reset, and binary streams in @jdesk/client.", group: "Reference", order: 5 },
+  { slug: "plugins", title: "Plugins", description: "Extend an app with signed, integrity-checked, capability-gated third-party plugins.", group: "Guides", order: 19 },
+  { slug: "non-modular-libraries", title: "Using non-modular libraries", description: "Use automatic-module Java libraries (like LSP4J) in a JPMS app for both dev and packaging.", group: "Guides", order: 20 },
 ];
 
 const CONTENT_DIR = path.join(
