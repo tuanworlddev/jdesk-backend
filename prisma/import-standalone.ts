@@ -1,6 +1,7 @@
-// One-off import: pulls the file-based standalone docs (content/docs/*.md in
-// the frontend) into the DB so every document lives in one place and is
-// editable in the admin. Safe to re-run (upserts by slug).
+// Pulls the file-based standalone docs (content/docs/*.md in the frontend)
+// into the DB so every document lives in one place and is editable in the
+// admin. The default mode upserts by slug. Pass --create-only during deploys
+// to publish newly added docs without overwriting later CMS edits.
 
 import { PrismaClient } from "@prisma/client";
 import { readFileSync } from "node:fs";
@@ -37,6 +38,7 @@ const STANDALONE: {
   { slug: "typescript-client", title: "TypeScript client", description: "Reference for invoke, events, cancellation, reset, and binary streams in @jdesk/client.", group: "Reference", order: 5 },
   { slug: "plugins", title: "Plugins", description: "Extend an app with signed, integrity-checked, capability-gated third-party plugins.", group: "Guides", order: 19 },
   { slug: "non-modular-libraries", title: "Using non-modular libraries", description: "Use automatic-module Java libraries (like LSP4J) in a JPMS app for both dev and packaging.", group: "Guides", order: 20 },
+  { slug: "webview-sessions", title: "WebView sessions & cookies", description: "Isolate browser sessions and manage cookies, cache, local storage, and user agents across native WebViews.", group: "Guides", order: 21 },
 ];
 
 const CONTENT_DIR = path.join(
@@ -48,7 +50,9 @@ const CONTENT_DIR = path.join(
 );
 
 async function main() {
+  const createOnly = process.argv.includes("--create-only");
   let imported = 0;
+  let skipped = 0;
   for (const doc of STANDALONE) {
     let content = "";
     try {
@@ -57,32 +61,49 @@ async function main() {
       console.warn(`  skip ${doc.slug} (no markdown file)`);
       continue;
     }
-    await prisma.document.upsert({
-      where: { slug: doc.slug },
-      update: {
-        title: doc.title,
-        description: doc.description,
-        group: doc.group,
-        order: doc.order,
-        content,
-        eyebrow: doc.group,
-        published: true,
-      },
-      create: {
-        slug: doc.slug,
-        title: doc.title,
-        description: doc.description,
-        group: doc.group,
-        order: doc.order,
-        content,
-        eyebrow: doc.group,
-        published: true,
-      },
-    });
+    const data = {
+      slug: doc.slug,
+      title: doc.title,
+      description: doc.description,
+      group: doc.group,
+      order: doc.order,
+      content,
+      eyebrow: doc.group,
+      published: true,
+    };
+
+    if (createOnly) {
+      const existing = await prisma.document.findUnique({
+        where: { slug: doc.slug },
+        select: { id: true },
+      });
+      if (existing) {
+        skipped += 1;
+        continue;
+      }
+      await prisma.document.create({ data });
+    } else {
+      await prisma.document.upsert({
+        where: { slug: doc.slug },
+        update: {
+          title: doc.title,
+          description: doc.description,
+          group: doc.group,
+          order: doc.order,
+          content,
+          eyebrow: doc.group,
+          published: true,
+        },
+        create: data,
+      });
+    }
     imported += 1;
   }
   const total = await prisma.document.count();
-  console.log(`✓ imported ${imported} standalone docs (DB now has ${total} documents)`);
+  console.log(
+    `✓ imported ${imported} standalone docs, skipped ${skipped} existing ` +
+      `(DB now has ${total} documents)`,
+  );
 }
 
 main()
